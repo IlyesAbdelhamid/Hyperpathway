@@ -1,0 +1,61 @@
+<!-- index.html -->
+<html>
+<head>
+  <title>Omics Hyperbolic Embedding</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    body { font-family: Arial; margin: 40px; }
+    #plot { width: 80vw; height: 60vh; }
+  </style>
+</head>
+<body>
+  <h2>Upload Your Omics Data</h2>
+  <input type="file" id="dataFile">
+  <button onclick="upload()">Submit</button>
+  <p id="status"></p>
+  <div id="plot"></div>
+
+  <script>
+    async function upload() {
+      const fileInput = document.getElementById('dataFile');
+      const file = fileInput.files[0];
+      if (!file) {
+        alert('Please select a file.');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("data", file);
+
+      document.getElementById("status").textContent = "Uploading and processing...";
+
+      try {
+        const response = await fetch('http://YOUR-BACKEND-IP:5000/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json(); // Expect JSON with x, y, labels
+        plotResult(result);
+        document.getElementById("status").textContent = "Success!";
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").textContent = "Failed to process.";
+      }
+    }
+
+    function plotResult(data) {
+      const trace = {
+        x: data.x,
+        y: data.y,
+        mode: 'markers',
+        type: 'scatter',
+        marker: { size: 8, color: data.group || 'red' },
+        text: data.labels || []
+      };
+
+      Plotly.newPlot('plot', [trace]);
+    }
+  </script>
+</body>
+</html>
